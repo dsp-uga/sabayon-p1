@@ -11,7 +11,7 @@
 
 ## Purpose
 
-sabayon-p1 provides the solution for project 1, course CIS8360.
+sabayon-p1 creates a classifier to classfiy malware for project 1, course CSCI8360 of UGA. 
 
 The project addresses the malware detection problem in the context of text classification.
 
