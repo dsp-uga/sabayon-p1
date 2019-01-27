@@ -42,4 +42,4 @@ For questions please email one of the authors:
 
 **marcdh@uga.edu**
 
-**jayantppparashar@gmail.com**
+**Jayant.Parashar@uga.edu**
