@@ -39,5 +39,7 @@ The code in this repository is free software: you can redistribute it and/or mod
 For questions please email one of the authors: 
 
 **saedr@uga.edu**
+
 **marcdh@uga.edu**
+
 **jayantppparashar@gmail.com**
