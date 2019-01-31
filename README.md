@@ -23,9 +23,11 @@ This project requires Python 3.x with `pyspark` library installed.
 
 The dataset consists of a set of documents belong to 9 different malware families. The content of the documents is in hexadecimal.
 
-Since the size of the dataset is large, the data is not included in the repository, however a script to download a sample of the data is provided in the repository. To download the data navigate to `scripts/` directory and run the follwoing in command line (note that [`google-cloud-sdk`](https://cloud.google.com/sdk/) is required for the script): 
+Since the size of the dataset is large, the data is not included in the repository, however a script to download a sample of the data is provided in the repository. To download the data navigate to `scripts/` directory and run on of the follwoings in command line (note that [`google-cloud-sdk`](https://cloud.google.com/sdk/) is required for the script): 
 
 `$./get_files.sh`
+
+`$python3 get_files.py`
 
 ## Usage
 
