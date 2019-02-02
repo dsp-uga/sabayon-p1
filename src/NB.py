@@ -1,6 +1,6 @@
 
 from pyspark import SparkContext
-from pyspark.ml.features import Tokenizer, HashingTF, IDF
+from pyspark.ml.feature import Tokenizer, HashingTF, IDF
 import sys
 from os import path
 
@@ -26,3 +26,5 @@ train_df = train_data.toDF(['id', 'text'])
 #Tokenize, Frequency, TF-IDF
 tokenizer = Tokenizer(inputCol="text", outputCol="words")
 training_words = tokenizer.transform(train_df)
+hashingTF = HashingTF(inputCol="words", outputCol="freqs")
+training_freq = hashingTF(training_words)
