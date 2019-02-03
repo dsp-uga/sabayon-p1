@@ -22,11 +22,26 @@ train_names = sc.broadcast(train_names)
 fp = open('../dataset/files/y_small_train.txt')
 train_labels = sc.broadcast(fp.read().split())
 
+#Testing Set
+fp = open('../dataset/files/X_small_test.txt')
+test_names = fp.read().split()
+file_path = 'file:' + path.realpath('../../data/bytes') + '/' #sys.argv[1]
+for i in range(len(test_names)):
+	test_names[i] = file_path + test_names[i] + '.bytes'
+test_names = sc.broadcast(test_names)
+
+#Testing Labels
+fp = open('../dataset/files/y_small_test.txt')
+test_labels = sc.broadcast(fp.read().split())
+
 #Convert Training Data into a Data Frame
 train_data = data.filter(lambda x: x[0] in train_names.value)
 train_df = train_data.toDF(['id', 'text'])
 
-#Tokenize, Frequency, TF-IDF
+test_data = data.filter(lambda x: x[0] in test_names.value)
+test_df = test_data.toDF(['id', 'text'])
+
+#Training: Tokenize, Frequency, TF-IDF
 tokenizer = Tokenizer(inputCol="text", outputCol="words")
 training_words = tokenizer.transform(train_df)
 hashingTF = HashingTF(inputCol="words", outputCol="freqs", numFeatures=256)
