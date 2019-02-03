@@ -10,6 +10,11 @@ def append_train_label(document):
 		if document[0] == train_names.value[i]:
 			return document[0], document[1], train_labels.value[i]
 
+def append_test_label(document):
+	for i in range(len(test_names.value)):
+		if document[0] == test_names.value[i]:
+			return document[0], document[1], test_labels.value[i]
+
 #Spark Defaults
 sc = SparkContext()
 spark = SparkSession(sc)
@@ -29,7 +34,7 @@ train_labels = sc.broadcast(fp.read().split())
 
 #Convert Training Data into a Data Frame
 train_data = data.filter(lambda x: x[0] in train_names.value)
-train_data = data.map(append_train_label)
+train_data = train_data.map(append_train_label)
 train_df = train_data.toDF(['id', 'text', 'label'])
 
 #Testing Set
@@ -46,7 +51,8 @@ test_labels = sc.broadcast(fp.read().split())
 
 #Convert Testing Data into a Data Frame
 test_data = data.filter(lambda x: x[0] in test_names.value)
-test_df = test_data.toDF(['id', 'text'])
+test_data = test_data.map(append_test_label)
+test_df = test_data.toDF(['id', 'text', 'label'])
 
 #Training: Tokenize, Frequency, TF-IDF
 tokenizer = Tokenizer(inputCol="text", outputCol="words")
