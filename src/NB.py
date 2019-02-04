@@ -22,7 +22,7 @@ sc = SparkContext()
 spark = SparkSession(sc)
 
 #Training Set
-data = sc.wholeTextFiles('../../data/bytes') #sys.argv[1]
+data = sc.wholeTextFiles(sys.argv[1])
 fp = open('../dataset/files/X_small_train.txt')
 train_names = fp.read().split()
 file_path = 'file:' + path.realpath('../../data/bytes') + '/' #sys.argv[1]
@@ -42,7 +42,7 @@ train_df = train_data.toDF(['id', 'text', 'label'])
 #Testing Set
 fp = open('../dataset/files/X_small_test.txt')
 test_names = fp.read().split()
-file_path = 'file:' + path.realpath('../../data/bytes') + '/' #sys.argv[1]
+file_path = 'file:' + path.realpath(sys.argv[1]) + '/'
 for i in range(len(test_names)):
 	test_names[i] = file_path + test_names[i] + '.bytes'
 test_names = sc.broadcast(test_names)
@@ -53,19 +53,25 @@ test_labels = sc.broadcast(fp.read().split())
 
 #Convert Testing Data into a Data Frame
 test_data = data.filter(lambda x: x[0] in test_names.value)
-#test_data = test_data.map(append_test_label)
 test_df = test_data.toDF(['id', 'text'])
+matched_test_labels = test_data.map(match_test_label).collect()
 
 #Training: Tokenize, Frequency, TF-IDF
 tokenizer = Tokenizer(inputCol="text", outputCol="words")
-#training_words = tokenizer.transform(train_df)
-hashingTF = HashingTF(inputCol="words", outputCol="freqs", numFeatures=256)
-#training_freq = hashingTF.transform(training_words)
-idf = IDF(inputCol='freqs', outputCol='features')
-#idf_model = idf.fit(training_freq)
-#training_tfidf = idf_model.transform(training_freq)
+#hashingTF = HashingTF(inputCol="words", outputCol="freqs", numFeatures=256)
+hashingTF = HashingTF(inputCol="words", outputCol="features", numFeatures=256)
+#idf = IDF(inputCol='freqs', outputCol='features')
 nb = NaiveBayes(smoothing=1.0, modelType='multinomial')
 
-pipeline = Pipeline(stages=[tokenizer, hashingTF, idf, nb])
+#ML Pipeline Model
+#pipeline = Pipeline(stages=[tokenizer, hashingTF, idf, nb])
+pipeline = Pipeline(stages=[tokenizer, hashingTF, nb])
 model = pipeline.fit(train_df)
-model.transform(test_df).show()
+predictions = model.transform(test_df)
+
+test_predictions = predictions.select('prediction').collect()
+correct = 0
+for i in range(len(test_predictions)):
+	if test_predictions[i][0] == matched_test_labels[i]:
+		correct += 1
+print('NB Model Accuracy ', (correct / len(test_predictions)))
