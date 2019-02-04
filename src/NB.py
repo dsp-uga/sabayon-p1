@@ -58,17 +58,17 @@ matched_test_labels = test_data.map(match_test_label).collect()
 
 #Training: Tokenize, Frequency, TF-IDF
 tokenizer = Tokenizer(inputCol="text", outputCol="words")
-#hashingTF = HashingTF(inputCol="words", outputCol="freqs", numFeatures=256)
-hashingTF = HashingTF(inputCol="words", outputCol="features", numFeatures=256)
-#idf = IDF(inputCol='freqs', outputCol='features')
+hashingTF = HashingTF(inputCol="words", outputCol="freqs", numFeatures=256)
+idf = IDF(inputCol='freqs', outputCol='features')
 nb = NaiveBayes(smoothing=1.0, modelType='multinomial')
 
 #ML Pipeline Model
-#pipeline = Pipeline(stages=[tokenizer, hashingTF, idf, nb])
-pipeline = Pipeline(stages=[tokenizer, hashingTF, nb])
+pipeline = Pipeline(stages=[tokenizer, hashingTF, idf, nb])
 model = pipeline.fit(train_df)
 predictions = model.transform(test_df)
 
+
+#Evaluate Model Accuracy
 test_predictions = predictions.select('prediction').collect()
 correct = 0
 for i in range(len(test_predictions)):
