@@ -17,12 +17,20 @@ def match_test_label(document):
 		if document[0] == test_names.value[i]:
 			return int(test_labels.value[i])
 
+def remove_line_id(document):
+	text = ''
+	for word in document[1].split():
+		if len(word) <= 2:
+			text += word + ' '
+	return document[0], text, document[2]
+
+
 #Spark Defaults
 sc = SparkContext()
 spark = SparkSession(sc)
 
 #Training Set
-data = sc.wholeTextFiles(sys.argv[1])
+data = sc.wholeTextFiles('../../data/bytes') #sys.argv[1]
 fp = open('../dataset/files/X_small_train.txt')
 train_names = fp.read().split()
 file_path = 'file:' + path.realpath('../../data/bytes') + '/' #sys.argv[1]
@@ -37,12 +45,13 @@ train_labels = sc.broadcast(fp.read().split())
 #Convert Training Data into a Data Frame
 train_data = data.filter(lambda x: x[0] in train_names.value)
 train_data = train_data.map(append_train_label)
+train_data = train_data.map(remove_line_id)
 train_df = train_data.toDF(['id', 'text', 'label'])
 
 #Testing Set
 fp = open('../dataset/files/X_small_test.txt')
 test_names = fp.read().split()
-file_path = 'file:' + path.realpath(sys.argv[1]) + '/'
+file_path = 'file:' + path.realpath('../../data/bytes') + '/' #sys.argv[1]
 for i in range(len(test_names)):
 	test_names[i] = file_path + test_names[i] + '.bytes'
 test_names = sc.broadcast(test_names)
@@ -66,9 +75,9 @@ nb = NaiveBayes(smoothing=1.0, modelType='multinomial')
 
 #ML Pipeline Model
 pipeline = Pipeline(stages=[tokenizer, remover, ngram, hashingTF, idf, nb])
+#pipeline = Pipeline(stages=[tokenizer, remover, hashingTF, idf, nb])
 model = pipeline.fit(train_df)
 predictions = model.transform(test_df)
-
 
 #Evaluate Model Accuracy
 test_predictions = predictions.select('prediction').collect()
