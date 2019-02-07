@@ -79,7 +79,7 @@ remover = StopWordsRemover(inputCol='words', outputCol='filtered', stopWords=['?
 ngram = NGram(n=2, inputCol='filtered', outputCol='ngrams')
 hashingTF = HashingTF(inputCol="filtered", outputCol="features") #, numFeatures=256)
 #countvec = CountVectorizer(inputCol='filtered', outputCol='features')
-#IDF
+#IDF Code
 #hashingTF = HashingTF(inputCol="ngrams", outputCol="freqs", numFeatures=256)
 #idf = IDF(inputCol='freqs', outputCol='features')
 nb = NaiveBayes(smoothing=1)
