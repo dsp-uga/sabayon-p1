@@ -76,19 +76,15 @@ matched_test_labels = test_data.map(match_test_label).collect()
 #Training: Tokenize, Frequency, TF-IDF
 tokenizer = Tokenizer(inputCol="text", outputCol="words")
 remover = StopWordsRemover(inputCol='words', outputCol='filtered', stopWords=['??', '00'])
-ngram = NGram(n=2, inputCol='filtered', outputCol='ngrams')
-hashingTF = HashingTF(inputCol="filtered", outputCol="features") #, numFeatures=256)
+ngram = NGram(n=3, inputCol='filtered', outputCol='ngrams')
+hashingTF = HashingTF(inputCol="ngrams", outputCol="features") #, numFeatures=256)
+#word2vec = Word2Vec(inputCol="freq", outputCol="features")
 #countvec = CountVectorizer(inputCol='filtered', outputCol='features')
-#IDF Code
-#hashingTF = HashingTF(inputCol="ngrams", outputCol="freqs", numFeatures=256)
 #idf = IDF(inputCol='freqs', outputCol='features')
 nb = NaiveBayes(smoothing=1)
 
-
-
 #ML Pipeline Model
 pipeline = Pipeline(stages=[tokenizer, remover, ngram, hashingTF, nb])
-#pipeline = Pipeline(stages=[tokenizer, remover, countvec, nb])
 model = pipeline.fit(train_df)
 #model.save('NB_IDF')
 predictions = model.transform(test_df)
