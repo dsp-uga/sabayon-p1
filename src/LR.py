@@ -1,7 +1,7 @@
 from pyspark import SparkContext
 from pyspark.sql.session import SparkSession
 from pyspark.ml.feature import Tokenizer, HashingTF, IDF, StopWordsRemover, NGram, Word2Vec
-from pyspark.ml.classification import LogisticRegressionClassifier()
+from pyspark.ml.classification import LogisticRegression
 from pyspark.ml import Pipeline
 import sys
 from os import path
@@ -76,13 +76,13 @@ matched_test_labels = test_data.map(match_test_label).collect()
 tokenizer = Tokenizer(inputCol="text", outputCol="words")
 remover = StopWordsRemover(inputCol='words', outputCol='filtered', stopWords=['??']) #, '00'])
 #ngram = NGram(n=3, inputCol='filtered', outputCol='ngrams')
-#hashingTF = HashingTF(inputCol="ngrams", outputCol="features") #, numFeatures=256)
+hashingTF = HashingTF(inputCol="filtered", outputCol="features") #, numFeatures=256)
 #idf = IDF(inputCol='freqs', outputCol='features')
-word2vec = Word2Vec(inputCol="filtered", outputCol="features")
-lr = LogisticRegressionClassifier()
+#word2vec = Word2Vec(inputCol="filtered", outputCol="features")
+lr = LogisticRegression()
 
 #ML Pipeline Model
-pipeline = Pipeline(stages=[tokenizer, remover, word2vec, lr])
+pipeline = Pipeline(stages=[tokenizer, remover, hashingTF, lr])
 model = pipeline.fit(train_df)
 #model.save('LR_W2V')
 predictions = model.transform(test_df)
@@ -91,6 +91,6 @@ predictions = model.transform(test_df)
 test_predictions = predictions.select('prediction').collect()
 correct = 0
 for i in range(len(test_predictions)):
-	if test_predictions[i][0]  + 1 == matched_test_labels[i]:
+	if test_predictions[i][0] == matched_test_labels[i]:
 		correct += 1
 print('LR Model Accuracy ', (correct / len(test_predictions)))
