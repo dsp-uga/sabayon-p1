@@ -1,7 +1,7 @@
 from pyspark import SparkContext
 from pyspark.sql.session import SparkSession
 from pyspark.ml.feature import Tokenizer, HashingTF, IDF, StopWordsRemover, NGram, Word2Vec 
-from pyspark.ml.classification import LogisticRegression
+from pyspark.ml.classification import RandomForestClassifier
 from pyspark.ml import Pipeline
 import sys
 from os import path
@@ -76,16 +76,15 @@ matched_test_labels = test_data.map(match_test_label).collect()
 tokenizer = Tokenizer(inputCol="text", outputCol="words")
 remover = StopWordsRemover(inputCol='words', outputCol='filtered', stopWords=['??']) #, '00'])
 ngram = NGram(n=2, inputCol='filtered', outputCol='ngrams')
-#hashingTF = HashingTF(inputCol="ngrams", outputCol="features") #, numFeatures=256)
+hashingTF = HashingTF(inputCol="ngrams", outputCol="features") #, numFeatures=256)
 #idf = IDF(inputCol='freqs', outputCol='features')
-word2vec = Word2Vec(inputCol='ngrams', outputCol='features')
-lr = LogisticRegression()
+#word2vec = Word2Vec(inputCol='ngrams', outputCol='features')
+rf = RandomForestClassifier()
 
 #ML Pipeline Model
-#pipeline = Pipeline(stages=[tokenizer, remover, ngram, hashingTF, lr])
-pipeline = Pipeline(stages=[tokenizer, remover, ngram, word2vec, lr])
+pipeline = Pipeline(stages=[tokenizer, remover, ngram, hashingTF, rf])
 model = pipeline.fit(train_df)
-#model.save('LR_Trigram_TF')
+model.save('RF_Bigram_TF')
 predictions = model.transform(test_df)
 
 #Evaluate Model Accuracy
@@ -94,4 +93,4 @@ correct = 0
 for i in range(len(test_predictions)):
 	if test_predictions[i][0] == matched_test_labels[i]:
 		correct += 1
-print('LR Model Accuracy ', (correct / len(test_predictions)))
+print('RF Model Accuracy ', (correct / len(test_predictions)))
