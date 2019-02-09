@@ -84,7 +84,7 @@ nb = NaiveBayes(smoothing=1)
 #ML Pipeline Model
 pipeline = Pipeline(stages=[tokenizer, remover, ngram, hashingTF, nb])
 model = pipeline.fit(train_df)
-model.save('NB_Best_Model')
+#model.save('NB_Best_Model')
 predictions = model.transform(test_df)
 
 #Evaluate Model Accuracy

@@ -79,12 +79,12 @@ ngram = NGram(n=2, inputCol='filtered', outputCol='ngrams')
 hashingTF = HashingTF(inputCol="ngrams", outputCol="features") #, numFeatures=256)
 #idf = IDF(inputCol='freqs', outputCol='features')
 #word2vec = Word2Vec(inputCol='ngrams', outputCol='features')
-rf = RandomForestClassifier()
+rf = RandomForestClassifier(maxDepth=7)
 
 #ML Pipeline Model
 pipeline = Pipeline(stages=[tokenizer, remover, ngram, hashingTF, rf])
 model = pipeline.fit(train_df)
-model.save('RF_Bigram_TF')
+#model.save('RF_Bigram_TF_8')
 predictions = model.transform(test_df)
 
 #Evaluate Model Accuracy
