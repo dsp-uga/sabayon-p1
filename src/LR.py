@@ -36,7 +36,7 @@ sc = SparkContext()
 spark = SparkSession(sc)
 
 #Training Set
-data = sc.wholeTextFiles('../../data/bytes') #sys.argv[1]
+data = sc.wholeTextFiles('../../data/bytes')
 fp = open('../dataset/files/X_small_train.txt')
 train_names = fp.read().split()
 file_path = 'file:' + path.realpath('../../data/bytes') + '/' #sys.argv[1]
