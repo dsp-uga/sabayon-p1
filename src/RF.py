@@ -42,6 +42,7 @@ train_names = fp.read().split()
 file_path = 'file:' + path.realpath('../../data/bytes') + '/' #sys.argv[1]
 for i in range(len(train_names)):
 	train_names[i] = file_path + train_names[i] + '.bytes'
+
 train_names = sc.broadcast(train_names)
 
 #Training Labels
