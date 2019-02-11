@@ -1,97 +1,72 @@
 from pyspark import SparkContext
 from pyspark.sql.session import SparkSession
-from pyspark.ml.feature import Tokenizer, HashingTF, IDF, StopWordsRemover, NGram, Word2Vec 
+from pyspark.ml.feature import RegexTokenizer, Tokenizer, HashingTF, IDF, StopWordsRemover, NGram, Word2Vec 
 from pyspark.ml.classification import RandomForestClassifier
 from pyspark.ml import Pipeline
-import sys
 from os import path
-
-def append_train_label(document):
-	for i in range(len(train_names.value)):
-		if document[0] == train_names.value[i]:
-			return document[0], document[1], int(train_labels.value[i])
-
-def match_test_label(document):
-	for i in range(len(test_names.value)):
-		if document[0] == test_names.value[i]:
-			return int(test_labels.value[i])
-
-def remove_train_line_id(document):
-	text = ''
-	for word in document[1].split():
-		if len(word) <= 2:
-			text += word + ' '
-	return document[0], text, document[2]
-
-def remove_test_line_id(document):
-	text = ''
-	for word in document[1].split():
-		if len(word) <= 2:
-			text += word + ' '
-	return document[0], text
-
 
 #Spark Defaults
 sc = SparkContext()
 spark = SparkSession(sc)
 
-#Training Set
-data = sc.wholeTextFiles('../../data/bytes') #sys.argv[1]
-fp = open('../dataset/files/X_small_train.txt')
-train_names = fp.read().split()
-file_path = 'file:' + path.realpath('../../data/bytes') + '/' #sys.argv[1]
+#Create training filenames
+train_names = sc.textFile('../../dataset/files/X_small_train.txt').collect()
+file_path = 'file:' + path.realpath('../../../data/asm') + '/' 
 for i in range(len(train_names)):
-	train_names[i] = file_path + train_names[i] + '.bytes'
+	train_names[i] = file_path + train_names[i] + '.asm'
 
-train_names = sc.broadcast(train_names)
+#Create Training ID-Label Dict
+train_labels = sc.textFile('../../dataset/files/y_small_train.txt').collect()
+train_id_label = {}
+for i in range(len(train_names)):
+	train_id_label[train_names[i]] = train_labels[i]
+train_id_label = sc.broadcast(train_id_label)
 
-#Training Labels
-fp = open('../dataset/files/y_small_train.txt')
-train_labels = sc.broadcast(fp.read().split())
-
-#Convert Training Data into a Data Frame
-train_data = data.filter(lambda x: x[0] in train_names.value)
-train_data = train_data.map(append_train_label)
-train_data = train_data.map(remove_train_line_id)
+#Create Training Dataframe
+data = sc.wholeTextFiles(','.join(train_names))
+train_data = data.map(lambda x: (x[0], x[1], int(train_id_label.value[x[0]])))
 train_df = train_data.toDF(['id', 'text', 'label'])
 
-#Testing Set
-fp = open('../dataset/files/X_small_test.txt')
-test_names = fp.read().split()
-file_path = 'file:' + path.realpath('../../data/bytes') + '/' #sys.argv[1]
+#Create testing filenames
+test_names = sc.textFile('../../dataset/files/X_small_test.txt').collect()
+file_path = 'file:' + path.realpath('../../../data/asm') + '/'
 for i in range(len(test_names)):
-	test_names[i] = file_path + test_names[i] + '.bytes'
-test_names = sc.broadcast(test_names)
+	test_names[i] = file_path + test_names[i] + '.asm'
 
-#Testing Labels
-fp = open('../dataset/files/y_small_test.txt')
-test_labels = sc.broadcast(fp.read().split())
+#Create ID-Label Dict
+test_labels = sc.textFile('../../dataset/files/y_small_test.txt').collect()
+test_id_label = {}
+for i in range(len(test_names)):
+	test_id_label[test_names[i]] = test_labels[i]
 
-#Convert Testing Data into a Data Frame
-test_data = data.filter(lambda x: x[0] in test_names.value)
-test_data = test_data.map(remove_test_line_id)
-test_df = test_data.toDF(['id', 'text'])
-matched_test_labels = test_data.map(match_test_label).collect()
+test_id_label = sc.broadcast(test_id_label)
+
+#Create Testing Dataframe
+data = sc.wholeTextFiles(','.join(test_names))
+test_data = data.map(lambda x: (x[0], x[1], int(test_id_label.value[x[0]])))
+test_df = test_data.toDF(['id', 'text', 'label'])
 
 #Training: Tokenize, W2V, Logistic Regression
-tokenizer = Tokenizer(inputCol="text", outputCol="words")
-remover = StopWordsRemover(inputCol='words', outputCol='filtered', stopWords=['??']) #, '00'])
+tokenizer = RegexTokenizer(inputCol="text", outputCol="words", pattern='\w{8}|\s')
+#tokenizer = Tokenizer(inputCol="text", outputCol="words")
+remover = StopWordsRemover(inputCol='words', outputCol='filtered', stopWords=['??', '.text', '.data'])
 ngram = NGram(n=2, inputCol='filtered', outputCol='ngrams')
 hashingTF = HashingTF(inputCol="ngrams", outputCol="features") #, numFeatures=256)
 #idf = IDF(inputCol='freqs', outputCol='features')
 #word2vec = Word2Vec(inputCol='ngrams', outputCol='features')
-rf = RandomForestClassifier(maxDepth=7)
+rf = RandomForestClassifier() #maxDepth=7
 
 #ML Pipeline Model
 pipeline = Pipeline(stages=[tokenizer, remover, ngram, hashingTF, rf])
 model = pipeline.fit(train_df)
-#model.save('RF_Bigram_TF_8')
+model.save('RF_Bigram_TF_5_ASM')
 predictions = model.transform(test_df)
 
 #Evaluate Model Accuracy
-test_predictions = predictions.select('prediction').collect()
+test_predictions = predictions.select('id', 'prediction').collect()
 correct = 0
 for i in range(len(test_predictions)):
-	if test_predictions[i][0] == matched_test_labels[i]:
+	if test_predictions[i][1] == int(test_id_label.value[test_predictions[i][0]]):
 		correct += 1
-print('RF Model Accuracy ', (correct / len(test_predictions)))
+
+print('RF Model Accuracy ', correct * 1.0 / len(test_predictions))
