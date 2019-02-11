@@ -9,7 +9,7 @@ sc = SparkContext()
 spark = SparkSession(sc)
 
 #Create training filenames
-train_names = sc.textFile('../../dataset/files/X_train.txt').collect()
+train_names = sc.textFile('gs://uga-dsp/project1/files/X_train.txt').collect()
 file_path = 'gs://uga-dsp/project1/data/asm/' 
 for i in range(len(train_names)):
 	train_names[i] = file_path + train_names[i] + '.asm'
@@ -48,8 +48,9 @@ pipeline = Pipeline(stages=[tokenizer, remover, ngram, hashingTF, rf])
 model = pipeline.fit(train_df)
 model.save('gs://malware-classifier-p1/RF_Bigram_TF_7_large_asm')
 predictions = model.transform(test_df)
-test_pred = predictions.select('id', 'prediction').collect()
 
+#Prediction Output
+test_pred = predictions.select('id', 'prediction').collect()
 test_names = open('/home/marcus/X_test.txt')
 file_path = 'gs://uga-dsp/project1/data/asm/'
 for i in range(len(test_names)):
