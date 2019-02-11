@@ -1,8 +1,7 @@
-
 from pyspark import SparkContext
 from pyspark.sql.session import SparkSession
-from pyspark.ml.feature import Tokenizer, HashingTF, IDF, StopWordsRemover, NGram
-from pyspark.ml.classification import NaiveBayes
+from pyspark.ml.feature import Tokenizer, HashingTF, IDF, StopWordsRemover, NGram, Word2Vec 
+from pyspark.ml.classification import LogisticRegression
 from pyspark.ml import Pipeline
 import sys
 from os import path
@@ -37,7 +36,7 @@ sc = SparkContext()
 spark = SparkSession(sc)
 
 #Training Set
-data = sc.wholeTextFiles('../../data/bytes') #sys.argv[1]
+data = sc.wholeTextFiles('../../data/bytes')
 fp = open('../dataset/files/X_small_train.txt')
 train_names = fp.read().split()
 file_path = 'file:' + path.realpath('../../data/bytes') + '/' #sys.argv[1]
@@ -73,24 +72,26 @@ test_data = test_data.map(remove_test_line_id)
 test_df = test_data.toDF(['id', 'text'])
 matched_test_labels = test_data.map(match_test_label).collect()
 
-#Training: Tokenize, Frequency, TF-IDF
+#Training: Tokenize, W2V, Logistic Regression
 tokenizer = Tokenizer(inputCol="text", outputCol="words")
-remover = StopWordsRemover(inputCol='words', outputCol='filtered', stopWords=['??'])#, '00'])
-ngram = NGram(n=3, inputCol='filtered', outputCol='ngrams')
-hashingTF = HashingTF(inputCol="ngrams", outputCol="features") #, numFeatures=256)
+remover = StopWordsRemover(inputCol='words', outputCol='filtered', stopWords=['??']) #, '00'])
+ngram = NGram(n=2, inputCol='filtered', outputCol='ngrams')
+#hashingTF = HashingTF(inputCol="ngrams", outputCol="features") #, numFeatures=256)
 #idf = IDF(inputCol='freqs', outputCol='features')
-nb = NaiveBayes(smoothing=1)
+word2vec = Word2Vec(inputCol='ngrams', outputCol='features')
+lr = LogisticRegression()
 
 #ML Pipeline Model
-pipeline = Pipeline(stages=[tokenizer, remover, ngram, hashingTF, nb])
+#pipeline = Pipeline(stages=[tokenizer, remover, ngram, hashingTF, lr])
+pipeline = Pipeline(stages=[tokenizer, remover, ngram, word2vec, lr])
 model = pipeline.fit(train_df)
-#model.save('NB_Best_Model')
+#model.save('LR_Trigram_TF')
 predictions = model.transform(test_df)
 
 #Evaluate Model Accuracy
 test_predictions = predictions.select('prediction').collect()
 correct = 0
 for i in range(len(test_predictions)):
-	if test_predictions[i][0]  + 1 == matched_test_labels[i]:
+	if test_predictions[i][0] == matched_test_labels[i]:
 		correct += 1
-print('NB Model Accuracy ', (correct / len(test_predictions)))
+print('LR Model Accuracy ', (correct / len(test_predictions)))
