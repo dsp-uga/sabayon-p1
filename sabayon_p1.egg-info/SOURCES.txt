@@ -1,0 +1,11 @@
+MANIFEST.in
+README.md
+setup.py
+sabayon_p1/__init__.py
+sabayon_p1/classify.py
+sabayon_p1/helper.py
+sabayon_p1.egg-info/PKG-INFO
+sabayon_p1.egg-info/SOURCES.txt
+sabayon_p1.egg-info/dependency_links.txt
+sabayon_p1.egg-info/requires.txt
+sabayon_p1.egg-info/top_level.txt
