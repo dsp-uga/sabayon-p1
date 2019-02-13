@@ -1,5 +1,5 @@
-from os import path
 import sys
+from os import path
 
 import pyspark
 from pyspark import SparkContext
@@ -7,7 +7,6 @@ from pyspark.sql.session import SparkSession
 from pyspark.ml.feature import Tokenizer, HashingTF, IDF, StopWordsRemover
 from pyspark.ml.feature import  NGram, Word2Vec, RegexTokenizer
 from pyspark.ml.classification import LogisticRegression, NaiveBayes, RandomForestClassifier
-from pyspark.ml import Pipeline
 
 
 def spark_session_setup(memory_limit='10G'):
@@ -32,7 +31,7 @@ def spark_session_setup(memory_limit='10G'):
     spark = SparkSession(sc)
     return sc
 
-def load_dataset(n_parts=50, asm_path='', bytes_path='', X_train='', y_train='', X_test='', y_test=''):
+def load_dataset(asm_path='', bytes_path='', X_train='', y_train='', X_test='', y_test='', n_parts=50):
 	"""
 	a function to load either bytes or asm dataset.
 	"""
@@ -75,3 +74,34 @@ def load_dataset(n_parts=50, asm_path='', bytes_path='', X_train='', y_train='',
 
 	return train_df, test_df, test_labels
 
+def write_to_file(predictions, outfile=''):
+	"""
+	writes the predictions in a csv file
+	"""
+	predictions.select('prediction').write.csv(outfile)
+
+def build_pipeline(classifier='rf', max_depth=7):
+	"""
+	creates a pipeline of functionalities to be applied on the training set
+	"""
+
+	# Training: Tokenize, Removing stop words, calculating n-grams, calcuating frequencies
+	tokenizer = RegexTokenizer(inputCol="text", outputCol="words", pattern='\w{8}|\s')
+	remover = StopWordsRemover(inputCol='words', outputCol='filtered', stopWords=['??'])
+	ngram_2 = NGram(n=2, inputCol='filtered', outputCol='ngrams')
+	ngram_3 = NGram(n=3, inputCol='filtered', outputCol='ngrams')
+	hashingTF = HashingTF(inputCol="ngrams", outputCol="features")
+	word2vec = Word2Vec(inputCol='ngrams', outputCol='features')
+	
+	if classifier == 'rf':
+		clf = RandomForestClassifier(maxDepth=max_depth)
+		stages = [tokenizer, remover, ngram_2, hashingTF, clf]
+	elif classifier == 'nb':
+		clf = NaiveBayes(smoothing=1)
+		stages = [tokenizer, remover, ngram_3, hashingTF, clf]
+	elif classifier == 'lr':
+		clf = LogisticRegression() 
+		stages = [tokenizer, remover, ngram_2, word2vec, clf]
+	else:
+		raise ValueError("classifier must be 'rf', 'nb', or 'lr'.")
+	return stages
