@@ -1,6 +1,17 @@
 
 Authors:
 
-Saed Rezayi
-Marcus Hill
-Jayant Parashar
+Saed Rezayi: 
+
+- contributed to the developement of the main code
+- populated the documentation and created the pip package
+
+Marcus Hill:
+
+- contributed to the developement of the main code
+- implemented different classifiers and obtained the highest accuracy.
+
+Jayant Parashar:
+
+- contributed to the developement of the main code
+- created sample jupyter notebooks for the project
