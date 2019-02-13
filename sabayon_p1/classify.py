@@ -4,7 +4,7 @@ import sys
 from pyspark.ml import Pipeline
 
 from helper import spark_session_setup
-from helper import load_dataset, write_to_file
+from helper import load_dataset
 from helper import write_to_file
 from helper import build_pipeline
 
