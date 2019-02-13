@@ -9,7 +9,7 @@ from pyspark.ml.feature import  NGram, Word2Vec, RegexTokenizer
 from pyspark.ml.classification import LogisticRegression, NaiveBayes, RandomForestClassifier
 
 
-def spark_session_setup(memory_limit='10G'):
+def spark_session_setup(memory_limit='4G'):
     """
     creates a spark context. 
     optional parameter is memory limit.
@@ -31,7 +31,7 @@ def spark_session_setup(memory_limit='10G'):
     spark = SparkSession(sc)
     return sc
 
-def load_dataset(asm_path='', bytes_path='', X_train='', y_train='', X_test='', y_test='', n_parts=50):
+def load_dataset(sc, asm_path='', bytes_path='', X_train='', y_train='', X_test='', y_test='', n_parts=50):
 	"""
 	a function to load either bytes or asm dataset.
 	"""
@@ -42,7 +42,7 @@ def load_dataset(asm_path='', bytes_path='', X_train='', y_train='', X_test='', 
 		file_path = bytes_path
 		extention = '.bytes'
 	else:
-		raise ValueError("only asm_path or bytes_path should be passed.")
+		raise ValueError("either asm_path or bytes_path should be passed.")
 
 	train_names = sc.textFile(X_train).collect()
 	for i in range(len(train_names)):
@@ -57,7 +57,7 @@ def load_dataset(asm_path='', bytes_path='', X_train='', y_train='', X_test='', 
 
 	#Create Training Dataframe
 	data = sc.wholeTextFiles(','.join(train_names), n_parts)
-	train_data = data.map(lambda x: (x[0], x[1], int(train_id_label.value[x[0]])))
+	train_data = data.map(lambda x: (x[0][5:], x[1], int(train_id_label.value[x[0][5:]])))
 	train_df = train_data.toDF(['id', 'text', 'label'])
 
 	#Create testing filenames
@@ -70,9 +70,9 @@ def load_dataset(asm_path='', bytes_path='', X_train='', y_train='', X_test='', 
 	test_df = test_data.toDF(['id', 'text'])
 
 	#Create test labels
-	test_labels = sc.textFile(y_test).collect()
+	# test_labels = sc.textFile(y_test).collect()
 
-	return train_df, test_df, test_labels
+	return train_df, test_df #, test_labels
 
 def write_to_file(predictions, outfile=''):
 	"""
