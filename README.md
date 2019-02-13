@@ -48,7 +48,7 @@ List of command line arguments to pass to the program are as follows:
 	--n_parts: an integer specifying the number of partitions.
 	--mem_lim: a string specifying the memory limit.
 	--max_depth: maximum depth of the tree in Rnadom Forest Classifier.
-	--classifier: classifier algorithm to be used for the classification task ( {lr,nb,rf}).
+	--classifier: classifier algorithm to be used for the classification task ({lr,nb,rf}).
 
 The default values for above parameters are set such that it builds a Random Forest Classifier with `max_depth=7` and works with [public data](https://console.cloud.google.com/storage/browser/uga-dsp/project1) available on Google cloud 
 
