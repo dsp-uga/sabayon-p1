@@ -36,24 +36,18 @@ You may install the package using `pip` as follows:
 `$ pip install --user -i https://test.pypi.org/simple/ sabayon-p1`
 
 In this case you can import the package and call different methods as follows:
-
-`>>> import sabayon_p1`
-
-`>>> sc = sabayon_p1.spark_session_setup(memory_limit='4G')`
-
-`>>> train_df, test_df = sabayon_p1.load_dataset(sc)`
-
-`>>> stages = sabayon_p1.build_pipeline(classifier='rf', max_depth=7)`
-
-`>>> from pyspark.ml import Pipeline`
-
-`>>> pipeline = Pipeline(stages=stages)`
-
-`>>>	model = pipeline.fit(train_df)`
-
-`>>> predictions = model.transform(test_df)`
-
-`>>> sabayon_p1.write_to_file(predictions, outfile)`
+```
+>>> import sabayon_p1
+>>> sc = sabayon_p1.spark_session_setup(memory_limit='4G')
+>>> train_df, test_df = sabayon_p1.load_dataset(sc)
+>>> stages = sabayon_p1.build_pipeline(classifier='rf', max_depth=7)
+>>> from pyspark.ml import Pipeline
+>>> pipeline = Pipeline(stages=stages)
+>>> model = pipeline.fit(train_df)
+>>> predictions = model.transform(test_df)
+>>> sabayon_p1.write_to_file(predictions, outfile)
+```
+Note that you should pass path parameters to the `load_dataset()` method (See below for the list of parameters). 
 
 Alternatively, you can download the source code and simply run the following command:
 
@@ -74,7 +68,7 @@ List of command line arguments to pass to the program are as follows:
 	--max_depth: maximum depth of the tree in Rnadom Forest Classifier.
 	--classifier: classifier algorithm to be used for the classification task ({lr,nb,rf}).
 
-The default values for above parameters are set such that it builds a Random Forest Classifier with `max_depth=7` and works with [public data](https://console.cloud.google.com/storage/browser/uga-dsp/project1) available on Google cloud 
+The default values for above parameters are set such that it builds a Random Forest Classifier with `max_depth=7` and works with [public data](https://console.cloud.google.com/storage/browser/uga-dsp/project1) available on Google Cloud.
 
 The see the above list in command line execute the following command:
 
