@@ -31,7 +31,23 @@ Since the size of the dataset is large, the data is not included in the reposito
 
 ## Usage
 
-To use the program simply run the following command:
+You may install the package using `pip` as follows:
+
+`$ pip install --user -i https://test.pypi.org/simple/ sabayon-p1`
+
+In this case you can import the package and call different methods as follows:
+
+`>>> import sabayon_p1`
+`>>> sc = sabayon_p1.spark_session_setup(memory_limit='4G')`
+`>>> train_df, test_df = sabayon_p1.load_dataset(sc)`
+`>>> stages = sabayon_p1.build_pipeline(classifier='rf', max_depth=7)`
+`>>> from pyspark.ml import Pipeline`
+`>>> pipeline = Pipeline(stages=stages)`
+`>>>	model = pipeline.fit(train_df)`
+`>>> predictions = model.transform(test_df)`
+`>>> sabayon_p1.write_to_file(predictions, outfile)`
+
+Alternatively, you can download the source code and simply run the following command:
 
 `$ python3 classify.py`
 
